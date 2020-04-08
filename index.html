@@ -11,6 +11,7 @@
     gtag('config', 'UA-135113520-1');
   </script>
   <script src="https://cdn.jsdelivr.net/npm/comfy.js/dist/comfy.min.js"></script>
+  <script src="web/tinycolor.js"></script>
   <link href="https://fonts.googleapis.com/css?family=Hind|Open+Sans&display=swap" rel="stylesheet">
   <style>
 	  @font-face {
@@ -34,6 +35,18 @@
       background: rgba( 0, 0, 0, 0.75 );
       width: 100%;
     }
+	.notice-bg {
+      padding: 1vw;
+      border-radius: 2px;
+	  background: #6C349C;
+	  width: 100%;
+	}
+	.highlight-bg {
+      padding: 1vw;
+      border-radius: 2px;
+	  background: #7D061E;
+	  width: 100%;
+	}
     .chat-badges {
       padding: 0.5vw;
     }
@@ -43,27 +56,54 @@
 	.chat-username {
 	  /* -webkit-text-stroke-width: 1px;
   	  -webkit-text-stroke-color: white; */
-	  text-shadow:
-	      1px 1px 0 #000,
-	      -1px -1px 0 #000,
-	      1px -1px 0 #000,
-	      -1px 1px 0 #000,
-	      1px 1px 0 #000;
+  		text-shadow:
+  			1px 1px 0 #000,
+  			-1px -1px 0 #000,
+  			1px -1px 0 #000,
+  			-1px 1px 0 #000,
+  			1px 1px 0 #000;
+	}
+	.footer {
+	  position: fixed;
+	  left: 0;
+	  bottom: 0;
+	  width: 100%;
+	  background-color: #6C349C;
+	  color: white;
+	  opacity: 0.9;
+	  text-align: center;
+	  cursor: pointer;
 	}
   </style>
 </head>
 
 <body>
+	<div id="bottom-scroll" class="footer">
+		Scroll to Bottom
+	</div>
 	<div id="chat-container" class="chat-container">
 	</div>
   <script>
+  	var chatters = {};
     const params = new URLSearchParams( location.search );
     var alignBottom = params.get( "bottom" ) || false;
 	var ignoreCommands = params.get( "ignoreCommands" ) || false;
+	var ignoreUsers = ( params.get( "ignoreUsers" ) || "" ).split( "," ).map( x => x.trim().toLowerCase() ).filter( x => !!x );
 	var messageCountLimit = 100;
 	if( alignBottom ) {
 	  document.querySelector( "#chat-container" ).style.bottom = "0px";
 	}
+
+	document.querySelector( "#bottom-scroll" ).style.visibility = "hidden";
+	window.onscroll = function( ev ) {
+		var chatContainer = document.querySelector( "body" );
+		var isScrolledToBottom = ( chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.offsetHeight < 2 );
+		document.querySelector( "#bottom-scroll" ).style.visibility = isScrolledToBottom ? "hidden" : "visible";
+	};
+
+	document.querySelector( "#bottom-scroll" ).addEventListener("click", function( ev ) {
+		window.scrollTo( 0, document.body.scrollHeight );
+	});
 
     var badgeSets = {};
     function loadBadgeSet( id ) {
@@ -125,7 +165,7 @@
     				var length = mote[1] - mote[0];
     				var empty = Array.apply(null, new Array(length + 1)).map(function() { return '' });
     				splitText = splitText.slice(0, mote[0]).concat(empty).concat(splitText.slice(mote[1] + 1, splitText.length));
-    				splitText.splice(mote[0], 1, '<img class="chat-message-emote" src="http://static-cdn.jtvnw.net/emoticons/v1/' + i + '/1.0" srcset="https://static-cdn.jtvnw.net/emoticons/v1/' + i + '/1.0 1x,https://static-cdn.jtvnw.net/emoticons/v1/' + i + '/2.0 2x,https://static-cdn.jtvnw.net/emoticons/v1/' + i + '/3.0 4x">');
+    				splitText.splice(mote[0], 1, '<img width="28px" height="28px" class="chat-message-emote" src="http://static-cdn.jtvnw.net/emoticons/v1/' + i + '/1.0" srcset="https://static-cdn.jtvnw.net/emoticons/v1/' + i + '/1.0 1x,https://static-cdn.jtvnw.net/emoticons/v1/' + i + '/2.0 2x,https://static-cdn.jtvnw.net/emoticons/v1/' + i + '/3.0 4x">');
     			}
     		}
     	}
@@ -158,11 +198,24 @@
 	}
 
     function appendThisMessage( user, message, extra ) {
+		var isNewChatter = !chatters[ user ];
+		chatters[ user ] = ( chatters[ user ] || 0 ) + 1;
+
+		if( ignoreUsers.includes( extra.username ) ) {
+			return;
+		}
+
 		var chatElement = document.createElement( "div" );
 		chatElement.id = "msg_" + ( extra.id || "unknown" );
 		chatElement.className += "parent-container";
 		var messageElement = document.createElement( "div" );
 		messageElement.className += "translucent-bg";
+		if( new RegExp( "\\b@?" + params.get( "channel" ) + "\\b", "i" ).test( message ) ) {
+			messageElement.className += " highlight-bg";
+		}
+		else if( isNewChatter ) {
+			messageElement.className += " notice-bg";
+		}
 		chatElement.appendChild( messageElement );
 
 		var badges = document.createElement("span");
@@ -175,9 +228,13 @@
 		}
 		messageElement.appendChild( badges );
 
+		var userColor = tinycolor( extra.userColor || "#ffffff" );
+		if( !tinycolor.isReadable( extra.userColor || "#ffffff", "#000", {} ) ) { // userColor.isDark() ) {
+			userColor = userColor.lighten( 25 );
+		}
 		var userElement = document.createElement( "span" );
 		userElement.innerText = user;
-		userElement.style.color = extra.userColor;
+		userElement.style.color = userColor.toHexString();
 		userElement.className += "chat-username";
 		messageElement.appendChild( userElement );
 
@@ -185,8 +242,17 @@
 		chatText.innerHTML = formatEmotes( message, extra.messageEmotes );
 		messageElement.appendChild( chatText );
 
+		var chatContainer = document.querySelector( "body" );
+		var isScrolledToBottom = ( chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.offsetHeight < 2 );
 		document.querySelector( "#chat-container" ).appendChild( chatElement );
-		chatElement.scrollIntoView();
+
+		document.querySelector( "#bottom-scroll" ).style.visibility = isScrolledToBottom ? "hidden" : "visible";
+
+		// Auto-scroll if we're at the bottom
+		if( isScrolledToBottom ) {
+			// chatElement.scrollIntoView( false );
+			window.scrollTo( 0, document.body.scrollHeight );
+		}
     }
 
     ComfyJS.onMessageDeleted = ( id, extra ) => {
