@@ -1,0 +1,79 @@
+@font-face {
+	font-family: OpenDyslexic;
+  src: url(../fonts/OpenDyslexic-Regular.woff)
+}
+
+h2 {
+	font-family: 'Hind', sans-serif;
+	font-size: 5vw;
+	margin: 0;
+	padding: 0;
+}
+
+p {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	font-family: 'OpenDyslexic', sans-serif;
+	font-size: 4vw;
+	color: white;
+	height: 100%;
+}
+
+.chat-container {}
+
+.parent-container {
+	/* height: 100%; */
+	/* vertical-align: bottom; */
+	display: block;
+	padding: 0.25vw;
+}
+
+.translucent-bg {
+	padding: 1vw;
+	border-radius: 2px;
+	background: rgba( 0, 0, 0, 0.75);
+	width: 100%;
+}
+
+.notice-bg {
+	padding: 1vw;
+	border-radius: 2px;
+	background: #6C349C;
+	width: 100%;
+}
+
+.highlight-bg {
+	padding: 1vw;
+	border-radius: 2px;
+	background: #7D061E;
+	width: 100%;
+}
+
+.chat-badges {
+	padding: 0.5vw;
+}
+
+.chat-badge {
+	padding: 0.5vw;
+}
+
+.chat-username {
+	/* -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: white; */
+	text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.footer {
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	background-color: #6C349C;
+	color: white;
+	opacity: 0.9;
+	text-align: center;
+	cursor: pointer;
+}
