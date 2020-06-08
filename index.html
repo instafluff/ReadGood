@@ -282,13 +282,14 @@
 		cleanOldMessages();
 	}
     ComfyJS.Init( params.get( "channel" ) );
-    fetch( "https://api.twitch.tv/helix/users?login=" + params.get( "channel" ), {
+    fetch( "https://api.twitch.tv/kraken/users?login=" + params.get( "channel" ), {
       headers: {
-        "Client-ID": "2odsv8xermvalbub7wipebrphqlpqv"
+        "Client-ID": "2odsv8xermvalbub7wipebrphqlpqv",
+        "Accept": "application/vnd.twitchtv.v5+json",
       }
     } ).then( r => r.json() )
     .then( data => {
-      loadBadgeSet( data.data[ 0 ].id );
+      loadBadgeSet( data.users[ 0 ]._id );
     });
   </script>
 </body>
